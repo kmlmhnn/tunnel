@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <sys/mman.h>
 #include <unistd.h>
+#include <string.h>
 
 uint32_t color(uint8_t r, uint8_t g, uint8_t b, struct fb_var_screeninfo *vinfo)
 {
@@ -30,16 +31,20 @@ int main()
 	long screensize = vinfo.yres_virtual * finfo.line_length;
 	uint32_t *fbp = mmap(NULL, screensize, PROT_READ | PROT_WRITE, MAP_SHARED, fb, (off_t)0);
 
+	uint32_t *texture = malloc(screensize);
+	memcpy(texture, fbp, screensize);
+
 	uint32_t x, y;
 	for(y = 0; y < vinfo.yres; y++){
 		for(x = 0; x < vinfo.xres; x++){
 			uint32_t pos = (y+vinfo.yoffset) * (finfo.line_length/4) + (x+vinfo.xoffset);
-			uint32_t col = color(0xFF, 0x00, 0xFF, &vinfo);
+			uint32_t col = texture[(y+vinfo.yoffset)*(finfo.line_length/4) + (finfo.line_length/4)-(x+vinfo.xoffset)];
 			fbp[pos] = col;
 		}
 	}
 
 	sleep(1);
+	free(texture);
 	return 0;
 }
 
