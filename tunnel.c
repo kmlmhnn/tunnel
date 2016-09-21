@@ -9,6 +9,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <string.h>
+#include <math.h>
 
 uint32_t color(uint8_t r, uint8_t g, uint8_t b, struct fb_var_screeninfo *vinfo)
 {
@@ -35,10 +36,21 @@ int main()
 	memcpy(texture, fbp, screensize);
 
 	uint32_t x, y;
-	for(y = 0; y < vinfo.yres; y++){
-		for(x = 0; x < vinfo.xres; x++){
-			uint32_t pos = (y+vinfo.yoffset) * (finfo.line_length/4) + (x+vinfo.xoffset);
-			uint32_t col = texture[(y+vinfo.yoffset)*(finfo.line_length/4) + (finfo.line_length/4)-(x+vinfo.xoffset)];
+	uint32_t width = finfo.line_length/4, height = vinfo.yres;
+	uint32_t yoff = vinfo.yoffset, xoff = vinfo.xoffset;
+	for(y = 0; y < height; y++){
+		for(x = 0; x < width; x++){
+			int32_t relx = x - width/2, rely = -(y - height/2);
+			double angle = atan2(rely, relx); 
+			uint32_t u, v; 
+			// v = (int) (((angle / M_PI) + 1.0) * 255.0 / 2.0); // Done!
+			// u = (int) (1024*1024.0 / sqrt(relx*relx + rely*rely)) % 255; // Done!
+
+			v = (int) (((angle / M_PI) + 1.0) * height / 2.0); 
+			u = (int) (width * 16 / sqrt(relx*relx + rely*rely)) % width; 
+
+			uint32_t pos = (y+yoff)*width + (x+xoff);
+			uint32_t col = texture[(v+yoff)*width + (u+xoff)];
 			fbp[pos] = col;
 		}
 	}
