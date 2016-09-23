@@ -6,3 +6,7 @@ Notes on building and running:
 
 2. Run from a virtual console. (Switch to a virtual console with Ctrl+Alt+F1.)
 
+3. Ctrl-C to quit.
+
+
+
