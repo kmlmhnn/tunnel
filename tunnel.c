@@ -38,24 +38,31 @@ int main()
 	uint32_t x, y;
 	uint32_t width = finfo.line_length/4, height = vinfo.yres;
 	uint32_t yoff = vinfo.yoffset, xoff = vinfo.xoffset;
-	for(y = 0; y < height; y++){
-		for(x = 0; x < width; x++){
-			int32_t relx = x - width/2, rely = -(y - height/2);
-			double angle = atan2(rely, relx); 
-			uint32_t u, v; 
-			// v = (int) (((angle / M_PI) + 1.0) * 255.0 / 2.0); // Done!
-			// u = (int) (1024*1024.0 / sqrt(relx*relx + rely*rely)) % 255; // Done!
 
-			v = (int) (((angle / M_PI) + 1.0) * height / 2.0); 
-			u = (int) (width * 16 / sqrt(relx*relx + rely*rely)) % width; 
+	uint32_t *backbuffer = calloc(screensize, 1);
+	int t;
+	for(t = 0; t < 600; t++){
+		for(y = 0; y < height; y++){
+			for(x = 0; x < width; x++){
+				int32_t relx = x - width/2, rely = -(y - height/2);
+				double angle = atan2(rely, relx); 
+				uint32_t u, v; 
 
-			uint32_t pos = (y+yoff)*width + (x+xoff);
-			uint32_t col = texture[(v+yoff)*width + (u+xoff)];
-			fbp[pos] = col;
+				v = (int) (((angle / M_PI) + 1.0) * height / 2.0); 
+				u = (int) (width * 16 / sqrt(relx*relx + rely*rely)) % width; 
+				u = (u + t*10) % height;
+				v = (v + t*10) % height;
+
+
+				uint32_t pos = (y+yoff)*width + (x+xoff);
+				uint32_t col = texture[(v+yoff)*width + (u+xoff)];
+				backbuffer[pos] = col;
+			}
 		}
+		memcpy(fbp, backbuffer, screensize);
+		usleep(16);
 	}
 
-	sleep(1);
 	free(texture);
 	return 0;
 }
